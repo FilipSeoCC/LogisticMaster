@@ -189,3 +189,49 @@ document.querySelector('.notification')?.addEventListener('click',event=>{event.
 document.querySelector('#notificationDrawerContent')?.addEventListener('click',event=>{const action=event.target.closest('[data-notification-view]');if(!action)return;closeNotifications();switchView(action.dataset.notificationView)});
 const notificationResize=document.querySelector('#notificationResize');notificationResize?.addEventListener('pointerdown',event=>{if(innerWidth<=760)return;event.preventDefault();notificationResize.setPointerCapture(event.pointerId);const startX=event.clientX,startWidth=notificationDrawer.getBoundingClientRect().width;const move=moveEvent=>{notificationDrawer.style.width=`${Math.max(360,Math.min(720,startWidth+startX-moveEvent.clientX))}px`};const stop=()=>{notificationResize.removeEventListener('pointermove',move);notificationResize.removeEventListener('pointerup',stop)};notificationResize.addEventListener('pointermove',move);notificationResize.addEventListener('pointerup',stop)});
 document.addEventListener('keydown',event=>{if(event.key==='Escape'){closeGlobalSearch();closeNotifications()}if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='k'){event.preventDefault();openGlobalSearch()}});
+
+// Integracja skrzynki e-mail: wyłącznie uwierzytelnione wywołania do funkcji serwerowych.
+let inboundMessages=[];
+async function emailApi(path,options={}){
+ const {data:{session}}=await window.lmSupabase.auth.getSession();
+ if(!session?.access_token)throw new Error('Sesja wygasła. Zaloguj się ponownie.');
+ const response=await fetch(path,{...options,headers:{'Content-Type':'application/json',Authorization:`Bearer ${session.access_token}`,...options.headers}});
+ const payload=await response.json().catch(()=>({}));
+ if(!response.ok)throw new Error(payload.error||'Operacja skrzynki nie powiodła się.');
+ return payload;
+}
+function emailFormPayload(){
+ const form=document.querySelector('#emailIntegrationForm'),data=new FormData(form);
+ return {provider:'cyber_folks',email:data.get('email'),password:data.get('password'),host:data.get('host'),port:Number(data.get('port')),folder:data.get('folder')};
+}
+function setInboxStatus(message,tone=''){
+ const status=document.querySelector('#inboxStatus');if(status){status.textContent=message;status.className=`inbox-status ${tone}`.trim()}
+}
+function setEmailBadge(message,connected=false){const badge=document.querySelector('#emailConnectionBadge');if(!badge)return;badge.textContent=message;badge.classList.toggle('connected',connected)}
+function renderInboundMessages(){
+ const root=document.querySelector('#inboxMessages');if(!root)return;
+ const badge=document.querySelector('[data-view="inbox"] .nav-count');if(badge){badge.textContent=inboundMessages.length;badge.hidden=!inboundMessages.length}
+ if(!inboundMessages.length){root.innerHTML='<div class="inbox-empty"><div class="empty-icon">▱</div><h3>Brak pobranych wiadomości</h3><p>Po podłączeniu Cyber_Folks pojawią się tu e-maile ze zleceniami.</p></div>';return}
+ root.innerHTML=inboundMessages.map(message=>`<article class="inbox-message"><section><b>${uiSafeText(message.sender_name||message.sender_email||'Nieznany nadawca')}</b><small>${uiSafeText(message.sender_email)}</small></section><section><strong>${uiSafeText(message.subject)}</strong><small>${uiSafeText(String(message.text_body||'').replace(/\s+/g,' ').slice(0,160))}</small></section><time>${new Date(message.received_at).toLocaleString('pl-PL',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}</time></article>`).join('');
+}
+async function loadInboxMessages(){
+ try{const result=await emailApi('/api/email/messages');inboundMessages=result.messages||[];renderInboundMessages();setInboxStatus(inboundMessages.length?`Pobrano ${inboundMessages.length} wiadomości. Synchronizacja nie zmienia ich statusu na serwerze.`:'Połączenie gotowe. Brak pobranych wiadomości.','connected')}
+ catch(error){renderInboundMessages();setInboxStatus(error.message,error.message.includes('skonfiguruj')?'':'error')}
+}
+const emailIntegrationForm=document.querySelector('#emailIntegrationForm');
+if(emailIntegrationForm)emailIntegrationForm.onsubmit=async event=>{
+ event.preventDefault();const button=emailIntegrationForm.querySelector('[type="submit"]'),original=button.textContent;button.disabled=true;button.textContent='Zapisuję…';
+ try{await emailApi('/api/email/configure',{method:'POST',body:JSON.stringify(emailFormPayload())});emailIntegrationForm.elements.password.value='';setEmailBadge('● Skonfigurowano',true);setInboxStatus('Konfiguracja zapisana. Uruchom synchronizację, aby pobrać wiadomości.','connected');showToast('Skrzynka skonfigurowana','Hasło zostało bezpiecznie zaszyfrowane po stronie serwera.')}
+ catch(error){showToast('Nie zapisano konfiguracji',error.message);setEmailBadge('○ Błąd konfiguracji',false)}finally{button.disabled=false;button.textContent=original}
+};
+document.querySelector('#emailTestBtn')?.addEventListener('click',async event=>{
+ const button=event.currentTarget,original=button.textContent;button.disabled=true;button.textContent='Testuję…';
+ try{await emailApi('/api/email/test',{method:'POST',body:JSON.stringify(emailFormPayload())});button.textContent='Połączenie działa ✓';setEmailBadge('● Połączono',true);showToast('Połączenie IMAP działa','Skrzynka i wskazany folder są dostępne.')}
+ catch(error){button.textContent=original;showToast('Test połączenia nieudany',error.message);setEmailBadge('○ Brak połączenia',false)}finally{button.disabled=false}
+});
+document.querySelector('#syncInboxBtn')?.addEventListener('click',async event=>{
+ const button=event.currentTarget,original=button.textContent;button.disabled=true;button.textContent='Synchronizuję…';setInboxStatus('Łączenie ze skrzynką…');
+ try{const result=await emailApi('/api/email/sync',{method:'POST',body:'{}'});await loadInboxMessages();showToast('Synchronizacja zakończona',`Sprawdzono ${result.scanned} ostatnich wiadomości.`)}
+ catch(error){setInboxStatus(error.message,'error');showToast('Nie udało się zsynchronizować',error.message)}finally{button.disabled=false;button.textContent=original}
+});
+window.lmSupabase?.auth.getSession().then(({data})=>{if(data.session)loadInboxMessages()});
