@@ -136,3 +136,19 @@ document.querySelector('#onboardingNext').onclick=()=>{
 };
 loadHardenedUserSession();renderTable();renderCards();renderFleet();renderFleetManagement();renderFuelFleet();renderTimeline();renderReports();renderSafeSummary();updateNotificationCounts();
 }
+
+/* Mobile navigation, scroll locking and current date. */
+const mobileSidebar=document.querySelector('#sidebar');
+const mobileBackdrop=document.querySelector('#mobileNavBackdrop');
+function syncMobileScrollLock(){const mobile=window.matchMedia('(max-width: 760px)').matches;const blocking=mobile&&(mobileSidebar?.classList.contains('open')||document.querySelector('.modal-backdrop.open')||document.querySelector('.onboarding-backdrop.open')||document.querySelector('.detail-drawer.open'));document.body.classList.toggle('mobile-lock',Boolean(blocking))}
+function closeMobileNavigation(){mobileSidebar?.classList.remove('open');mobileBackdrop?.classList.remove('open');document.querySelector('#mobileMenu')?.setAttribute('aria-expanded','false');syncMobileScrollLock()}
+const mobileMenuButton=document.querySelector('#mobileMenu');
+if(mobileMenuButton){mobileMenuButton.setAttribute('aria-expanded','false');mobileMenuButton.onclick=()=>{const open=!mobileSidebar.classList.contains('open');mobileSidebar.classList.toggle('open',open);mobileBackdrop?.classList.toggle('open',open);mobileMenuButton.setAttribute('aria-expanded',String(open));syncMobileScrollLock()}}
+mobileBackdrop?.addEventListener('click',closeMobileNavigation);
+document.querySelectorAll('.nav-item').forEach(item=>item.addEventListener('click',closeMobileNavigation));
+document.addEventListener('keydown',event=>{if(event.key==='Escape')closeMobileNavigation()});
+const mobileStateObserver=new MutationObserver(syncMobileScrollLock);
+document.querySelectorAll('.modal-backdrop,.onboarding-backdrop,.detail-drawer').forEach(element=>mobileStateObserver.observe(element,{attributes:true,attributeFilter:['class']}));
+window.addEventListener('resize',()=>{if(!window.matchMedia('(max-width: 760px)').matches)closeMobileNavigation();else syncMobileScrollLock()});
+const dateLabel=document.querySelector('.topbar-title .eyebrow');
+if(dateLabel)dateLabel.textContent=new Intl.DateTimeFormat('pl-PL',{weekday:'long',day:'numeric',month:'long'}).format(new Date()).toUpperCase();
