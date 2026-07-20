@@ -4,6 +4,13 @@ button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
 .mobile-nav-backdrop { display: none; }
 
 @media (max-width: 760px) {
+  .search-overlay { padding-top: max(12px, env(safe-area-inset-top)); }
+  .search-command { width: calc(100% - 20px); max-height: 88dvh; }
+  .search-command-results { max-height: calc(88dvh - 100px); }
+  .notification-drawer { width: 100%; min-width: 0; max-width: none; padding-top: env(safe-area-inset-top); }
+  .drawer-resize-handle { display: none; }
+  .notification-drawer>header { padding: 18px 16px; }
+  .notification-drawer-content { padding: 10px 12px calc(24px + env(safe-area-inset-bottom)); }
   .cloud-sync-status { padding: 0 8px; }
   body.mobile-lock { overflow: hidden; touch-action: none; }
   .sidebar {
