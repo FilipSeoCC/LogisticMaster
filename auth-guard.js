@@ -14,6 +14,7 @@
     const startApplication = () => {
       const script = document.createElement('script');
       script.src = 'app.js';
+      script.onload = () => window.startRemoteRealtime?.();
       document.body.appendChild(script);
     };
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', startApplication, { once: true });

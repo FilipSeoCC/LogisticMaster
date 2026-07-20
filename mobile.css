@@ -4,6 +4,7 @@ button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
 .mobile-nav-backdrop { display: none; }
 
 @media (max-width: 760px) {
+  .cloud-sync-status { padding: 0 8px; }
   body.mobile-lock { overflow: hidden; touch-action: none; }
   .sidebar {
     width: min(86vw, 320px);
@@ -122,6 +123,11 @@ button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
   .onboarding-actions button { min-height: 46px; }
   .toast { left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); }
   .legal-footer { height: auto; min-height: 80px; flex-wrap: wrap; gap: 12px; padding: 18px 20px calc(18px + env(safe-area-inset-bottom)); }
+}
+
+@media (max-width: 370px) {
+  .cloud-sync-status b { display: none; }
+  .cloud-sync-status { width: 30px; justify-content: center; padding: 0; }
 }
 
 @media (max-width: 390px) {

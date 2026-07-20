@@ -2,6 +2,12 @@
   const client = window.lmSupabase;
   let context = null;
   let syncTimer = null;
+  let realtimeTimer = null;
+
+  function emitStatus(state, label) {
+    window.lmLastSyncStatus = { state, label };
+    document.dispatchEvent(new CustomEvent('lm:sync-status', { detail: { state, label } }));
+  }
 
   const numberFrom = value => Number(String(value ?? 0).replace(/[^0-9.-]/g, '')) || 0;
 
@@ -39,6 +45,7 @@
     if (settingsRow?.configuration) localStorage.setItem(`lm_user_${context.email}_settings`, JSON.stringify(settingsRow.configuration));
     if (remoteIsEmpty && hasLocalData) await syncWorkspace(localWorkspace);
     window.lmRemoteContext = context;
+    emitStatus('online', 'Zapisano online');
     return selectedWorkspace;
   }
 
@@ -69,7 +76,16 @@
 
   function queueRemoteWorkspaceSync(workspace) {
     clearTimeout(syncTimer);
-    syncTimer = setTimeout(() => syncWorkspace(workspace).catch(error => console.error('Błąd synchronizacji Supabase:', error)), 250);
+    emitStatus('syncing', 'Zapisywanie…');
+    syncTimer = setTimeout(async () => {
+      try {
+        await syncWorkspace(workspace);
+        emitStatus('online', 'Zapisano online');
+      } catch (error) {
+        console.error('Błąd synchronizacji Supabase:', error);
+        emitStatus('offline', 'Zmiany lokalne');
+      }
+    }, 250);
   }
 
   async function syncSettings(configuration) {
@@ -78,7 +94,44 @@
     if (error) throw error;
   }
 
+  async function fetchRemoteWorkspace() {
+    const [{ data: driverRows, error: driverError }, { data: vehicleRows, error: vehicleError }, { data: transportRows, error: transportError }] = await Promise.all([
+      client.from('drivers').select('*').order('created_at'),
+      client.from('vehicles').select('*').order('created_at'),
+      client.from('transports').select('*').order('created_at', { ascending: false }),
+    ]);
+    const error = driverError || vehicleError || transportError;
+    if (error) throw error;
+    return { drivers: (driverRows || []).map(mapDriver), fleet: (vehicleRows || []).map(mapVehicle), transports: (transportRows || []).map(mapTransport), updatedAt: new Date().toISOString() };
+  }
+
+  function startRemoteRealtime() {
+    if (!context || window.lmRealtimeChannel) return;
+    const refresh = () => {
+      clearTimeout(realtimeTimer);
+      realtimeTimer = setTimeout(async () => {
+        try {
+          const workspace = await fetchRemoteWorkspace();
+          window.applyRemoteWorkspace?.(workspace);
+          emitStatus('online', 'Dane aktualne');
+        } catch (error) {
+          console.error('Błąd odświeżania danych:', error);
+          emitStatus('offline', 'Brak połączenia');
+        }
+      }, 350);
+    };
+    let channel = client.channel(`logistic-master-${context.organizationId}`);
+    ['drivers', 'vehicles', 'transports'].forEach(table => {
+      channel = channel.on('postgres_changes', { event: '*', schema: 'public', table, filter: `organization_id=eq.${context.organizationId}` }, refresh);
+    });
+    window.lmRealtimeChannel = channel.subscribe(status => {
+      if (status === 'SUBSCRIBED') emitStatus('online', 'Zapisano online');
+      if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') emitStatus('offline', 'Brak połączenia');
+    });
+  }
+
   window.loadRemoteWorkspace = loadRemoteWorkspace;
   window.queueRemoteWorkspaceSync = queueRemoteWorkspaceSync;
   window.syncRemoteSettings = configuration => syncSettings(configuration).catch(error => console.error('Błąd synchronizacji ustawień:', error));
+  window.startRemoteRealtime = startRemoteRealtime;
 })();
