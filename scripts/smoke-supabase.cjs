@@ -12,9 +12,9 @@ const database = new Client({
 (async () => {
   if (!process.env.SUPABASE_DB_PASSWORD) throw new Error('Brak SUPABASE_DB_PASSWORD');
   await database.connect();
-  const schemaCheck = await database.query("select count(*)::int as count from pg_tables where schemaname = 'public' and tablename in ('organizations','profiles','drivers','vehicles','transports','organization_settings') and rowsecurity = true");
+  const schemaCheck = await database.query("select count(*)::int as count from pg_tables where schemaname = 'public' and tablename in ('organizations','profiles','drivers','vehicles','transports','organization_settings','audit_events') and rowsecurity = true");
   const policyCheck = await database.query("select count(*)::int as count from pg_policies where schemaname = 'public'");
-  if (schemaCheck.rows[0].count !== 6 || policyCheck.rows[0].count < 8) throw new Error('Niepełna konfiguracja schematu lub RLS');
+  if (schemaCheck.rows[0].count !== 7 || policyCheck.rows[0].count < 10) throw new Error('Niepełna konfiguracja schematu lub RLS');
   const account = await database.query('select id from auth.users order by created_at limit 1');
   if (!account.rowCount) {
     console.log('SCHEMA_OK RLS_POLICIES_OK (CRUD po utworzeniu pierwszego konta)');

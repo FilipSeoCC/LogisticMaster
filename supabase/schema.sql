@@ -83,6 +83,17 @@ create table if not exists public.organization_settings (
   updated_at timestamptz not null default now()
 );
 
+create table if not exists public.audit_events (
+  id uuid primary key default gen_random_uuid(),
+  organization_id uuid not null references public.organizations(id) on delete cascade,
+  user_id uuid references auth.users(id) on delete set null,
+  action text not null,
+  entity_type text not null,
+  entity_key text not null default '',
+  details jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now()
+);
+
 create or replace function public.current_organization_id()
 returns uuid
 language sql
@@ -142,6 +153,7 @@ alter table public.drivers enable row level security;
 alter table public.vehicles enable row level security;
 alter table public.transports enable row level security;
 alter table public.organization_settings enable row level security;
+alter table public.audit_events enable row level security;
 
 drop policy if exists organizations_select on public.organizations;
 create policy organizations_select on public.organizations for select using (id = public.current_organization_id());
@@ -161,9 +173,14 @@ drop policy if exists transports_all on public.transports;
 create policy transports_all on public.transports for all using (organization_id = public.current_organization_id()) with check (organization_id = public.current_organization_id());
 drop policy if exists settings_all on public.organization_settings;
 create policy settings_all on public.organization_settings for all using (organization_id = public.current_organization_id()) with check (organization_id = public.current_organization_id());
+drop policy if exists audit_select on public.audit_events;
+create policy audit_select on public.audit_events for select using (organization_id = public.current_organization_id());
+drop policy if exists audit_insert on public.audit_events;
+create policy audit_insert on public.audit_events for insert with check (organization_id = public.current_organization_id() and user_id = auth.uid());
 
 grant usage on schema public to authenticated;
 grant select, insert, update, delete on public.organizations, public.profiles, public.drivers, public.vehicles, public.transports, public.organization_settings to authenticated;
+grant select, insert on public.audit_events to authenticated;
 
 do $$
 declare realtime_table text;

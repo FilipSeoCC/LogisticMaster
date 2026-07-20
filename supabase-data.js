@@ -9,6 +9,27 @@
     document.dispatchEvent(new CustomEvent('lm:sync-status', { detail: { state, label } }));
   }
 
+  function offlineQueueKey() {
+    return context ? `lm_offline_queue_${context.email}` : null;
+  }
+
+  function storeOfflineSnapshot(workspace) {
+    const key = offlineQueueKey();
+    if (key) localStorage.setItem(key, JSON.stringify({ workspace, queuedAt: new Date().toISOString() }));
+  }
+
+  async function flushOfflineQueue() {
+    const key = offlineQueueKey();
+    if (!key) return;
+    let queued = null;
+    try { queued = JSON.parse(localStorage.getItem(key) || 'null'); } catch {}
+    if (!queued?.workspace) return;
+    emitStatus('syncing', 'Wysyłanie zmian…');
+    await syncWorkspace(queued.workspace);
+    localStorage.removeItem(key);
+    emitStatus('online', 'Zapisano online');
+  }
+
   const numberFrom = value => Number(String(value ?? 0).replace(/[^0-9.-]/g, '')) || 0;
 
   function mapDriver(row) {
@@ -46,6 +67,7 @@
     if (remoteIsEmpty && hasLocalData) await syncWorkspace(localWorkspace);
     window.lmRemoteContext = context;
     emitStatus('online', 'Zapisano online');
+    flushOfflineQueue().catch(() => emitStatus('offline', 'Zmiany lokalne'));
     return selectedWorkspace;
   }
 
@@ -83,6 +105,7 @@
         emitStatus('online', 'Zapisano online');
       } catch (error) {
         console.error('Błąd synchronizacji Supabase:', error);
+        storeOfflineSnapshot(workspace);
         emitStatus('offline', 'Zmiany lokalne');
       }
     }, 250);
@@ -91,6 +114,19 @@
   async function syncSettings(configuration) {
     if (!context) return;
     const { error } = await client.from('organization_settings').upsert({ organization_id: context.organizationId, configuration, updated_at: new Date().toISOString() });
+    if (error) throw error;
+  }
+
+  async function recordAuditEvent(action, entityType, entityKey, details = {}) {
+    if (!context) return;
+    const localKey = `lm_recent_activity_${context.email}`;
+    let recent = [];
+    try { recent = JSON.parse(localStorage.getItem(localKey) || '[]'); } catch {}
+    recent.unshift({ action, entityType, entityKey, details, createdAt: new Date().toISOString() });
+    localStorage.setItem(localKey, JSON.stringify(recent.slice(0, 20)));
+    const { data: { user } } = await client.auth.getUser();
+    if (!user) return;
+    const { error } = await client.from('audit_events').insert({ organization_id: context.organizationId, user_id: user.id, action, entity_type: entityType, entity_key: entityKey || '', details });
     if (error) throw error;
   }
 
@@ -134,4 +170,7 @@
   window.queueRemoteWorkspaceSync = queueRemoteWorkspaceSync;
   window.syncRemoteSettings = configuration => syncSettings(configuration).catch(error => console.error('Błąd synchronizacji ustawień:', error));
   window.startRemoteRealtime = startRemoteRealtime;
+  window.recordAuditEvent = (action, entityType, entityKey, details) => recordAuditEvent(action, entityType, entityKey, details).catch(error => console.error('Błąd historii zmian:', error));
+  window.addEventListener('online', () => flushOfflineQueue().catch(() => emitStatus('offline', 'Zmiany lokalne')));
+  window.addEventListener('offline', () => emitStatus('offline', 'Tryb offline'));
 })();
