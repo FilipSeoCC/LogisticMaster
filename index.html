@@ -5,25 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="theme-color" content="#0c1222" />
   <link rel="icon" href="aiops-icon.png" type="image/png" />
-  <script>
-    try {
-      const logisticMasterSession = sessionStorage.getItem('lm_session') || localStorage.getItem('lm_session');
-      const logisticMasterUser = logisticMasterSession ? JSON.parse(logisticMasterSession) : null;
-      const logisticMasterAccounts = JSON.parse(localStorage.getItem('lm_accounts') || '[]');
-      const sessionAccountExists = logisticMasterUser?.email && logisticMasterAccounts.some(account => account.email === logisticMasterUser.email && (!logisticMasterUser.id || !account.id || account.id === logisticMasterUser.id));
-      const isInvalidDemoIdentity = logisticMasterUser?.firstName === 'Marek' && logisticMasterUser?.lastName === 'Kowalski' && logisticMasterUser?.email !== 'marek@firma.pl';
-      if (!logisticMasterSession || !sessionAccountExists || isInvalidDemoIdentity) {
-        if (isInvalidDemoIdentity) {
-          sessionStorage.removeItem('lm_session');
-          localStorage.removeItem('lm_session');
-          localStorage.removeItem('lm_profile');
-        }
-        window.location.replace('auth.html');
-      }
-    } catch {
-      window.location.replace('auth.html');
-    }
-  </script>
+  <script>document.documentElement.classList.add('auth-checking')</script>
+  <style>html.auth-checking body{visibility:hidden}</style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-client.js"></script>
+  <script src="auth-guard.js"></script>
   <title>Logistic Master — Centrum operacyjne</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -68,7 +54,7 @@
         <button aria-label="Menu konta" id="accountMenuBtn">•••</button>
       </div>
       <div class="account-popover" id="accountPopover"><button id="openOnboarding">Uruchom konfigurację</button><button id="openAccountSettings">Ustawienia konta</button><button id="logoutBtn">Wyloguj się</button></div>
-      <div class="legal-links"><a href="privacy.html">Prywatność</a><span>•</span><a href="rodo.html">RODO</a><span>•</span><span class="app-version">Mark 1.v2</span></div><a class="aiops-signature sidebar-signature" href="https://www.ai-ops.pl" target="_blank" rel="noopener"><img src="aiops-logo.png" alt=""><span>Projekt i automatyzacja<br><b>AI-Ops</b></span></a>
+      <div class="legal-links"><a href="privacy.html">Prywatność</a><span>•</span><a href="rodo.html">RODO</a><span>•</span><span class="app-version">Mark 1.v3</span></div><a class="aiops-signature sidebar-signature" href="https://www.ai-ops.pl" target="_blank" rel="noopener"><img src="aiops-logo.png" alt=""><span>Projekt i automatyzacja<br><b>AI-Ops</b></span></a>
   </aside><button class="mobile-nav-backdrop" id="mobileNavBackdrop" aria-label="Zamknij menu"></button>
 
     <main class="main-content">
@@ -185,6 +171,5 @@
     <div class="onboarding-actions"><button class="secondary-btn" id="onboardingBack">← Wstecz</button><span id="onboardingDots"></span><button class="primary-btn" id="onboardingNext">Rozpocznij konfigurację →</button></div></main></div></div>
   <div class="drawer-backdrop" id="drawerBackdrop"></div><aside class="detail-drawer" id="detailDrawer"><button class="drawer-close" id="drawerClose">×</button><div id="drawerContent"></div></aside>
   <div class="toast" id="toast"><span>✓</span><div><b>Gotowe</b><p>Zmiany zostały zapisane.</p></div></div>
-  <script src="app.js"></script>
 </body>
 </html>
