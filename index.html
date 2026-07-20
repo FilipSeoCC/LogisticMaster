@@ -5,6 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#0c1222" />
   <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+  <script>
+    try {
+      const logisticMasterSession = sessionStorage.getItem('lm_session') || localStorage.getItem('lm_session');
+      if (!logisticMasterSession) window.location.replace('auth.html');
+    } catch {
+      window.location.replace('auth.html');
+    }
+  </script>
   <title>Logistic Master — Centrum operacyjne</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
