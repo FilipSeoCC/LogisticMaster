@@ -1,0 +1,16 @@
+.aiops-signature {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  color: #7d8aa1;
+  font-size: 8px;
+  line-height: 1.25;
+  text-decoration: none;
+}
+.aiops-signature img { width: 22px; height: 22px; object-fit: contain; }
+.aiops-signature b { color: #f59e42; font-family: Manrope, sans-serif; }
+.sidebar-signature { width: 100%; margin: 9px auto 0; padding-top: 9px; border-top: 1px solid #202b40; }
+.auth-signature { margin-top: 12px; }
+.footer-signature { color: #a9b9e9 !important; }
+.footer-signature img { width: 25px; height: 25px; }
