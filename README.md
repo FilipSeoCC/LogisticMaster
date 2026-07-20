@@ -10,7 +10,7 @@ Nowoczesne centrum operacyjne dla małej i średniej firmy transportowej obsług
 - raporty statusowe dla kontrahentów,
 - przygotowanie zleceń z wiadomości e-mail przez AI,
 - moduł paliwa, spalania i wpływu kosztów na marżę,
-- konfiguracja Web Sat oraz skrzynki e-mail,
+- konfiguracja aplikacji GPS oraz skrzynki e-mail,
 - logowanie, rejestracja i onboarding użytkownika,
 - polityka prywatności i centrum praw RODO.
 
@@ -30,4 +30,4 @@ http://127.0.0.1:4173/
 
 ## Status
 
-Obecna wersja jest interaktywnym prototypem frontendowym. Dane Web Sat, ceny paliwa, poczta i AI są demonstracyjne. Produkcyjne wdrożenie wymaga backendu, bazy danych, bezpiecznego uwierzytelniania i właściwych integracji API/IMAP.
+Obecna wersja jest interaktywnym prototypem frontendowym. Dane z aplikacji GPS, ceny paliwa, poczta i AI są demonstracyjne. Produkcyjne wdrożenie wymaga backendu, bazy danych, bezpiecznego uwierzytelniania i właściwych integracji API/IMAP.
