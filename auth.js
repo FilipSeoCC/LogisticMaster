@@ -11,6 +11,28 @@ function userKey(email, suffix) {
   return `lm_user_${email.toLowerCase()}_${suffix}`;
 }
 
+function legacyAccount(email) {
+  try {
+    return JSON.parse(localStorage.getItem('lm_accounts') || '[]').find(account => account.email?.toLowerCase() === email.toLowerCase()) || null;
+  } catch {
+    return null;
+  }
+}
+
+function prepareLegacyMigration(email) {
+  const legacy = legacyAccount(email);
+  if (!legacy) return false;
+  showAuth('register');
+  const form = document.querySelector('#registerForm');
+  form.elements.firstName.value = legacy.firstName || '';
+  form.elements.lastName.value = legacy.lastName || '';
+  form.elements.email.value = email;
+  form.elements.phone.value = legacy.phone || '';
+  form.elements.password.focus();
+  showToast('Przenieś konto do Supabase', 'Dane zostały uzupełnione. Ustaw hasło i kliknij „Utwórz konto”.');
+  return true;
+}
+
 function readableAuthError(error) {
   const message = String(error?.message || '').toLowerCase();
   if (message.includes('invalid login credentials')) return ['Nieprawidłowe dane logowania', 'Sprawdź adres e-mail i hasło.'];
@@ -87,6 +109,11 @@ document.querySelector('#loginForm').onsubmit = async event => {
     window.syncLogisticMasterSession(result.session);
     location.href = 'index.html';
   } catch (error) {
+    if (String(error?.message || '').toLowerCase().includes('invalid login credentials') && prepareLegacyMigration(data.email.trim().toLowerCase())) {
+      submit.disabled = false;
+      submit.textContent = 'Zaloguj się →';
+      return;
+    }
     const [title, message] = readableAuthError(error);
     submit.disabled = false;
     submit.textContent = 'Zaloguj się →';
