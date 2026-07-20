@@ -27,7 +27,8 @@ function prepareLegacyMigration(email) {
   form.elements.firstName.value = legacy.firstName || '';
   form.elements.lastName.value = legacy.lastName || '';
   form.elements.email.value = email;
-  form.elements.phone.value = legacy.phone || '';
+  const validPhone = typeof legacy.phone === 'string' && !legacy.phone.includes('@') && /^[+0-9 ()-]{9,20}$/.test(legacy.phone.trim());
+  form.elements.phone.value = validPhone ? legacy.phone : '';
   form.elements.password.focus();
   showToast('Przenieś konto do Supabase', 'Dane zostały uzupełnione. Ustaw hasło i kliknij „Utwórz konto”.');
   return true;
@@ -38,6 +39,7 @@ function readableAuthError(error) {
   if (message.includes('invalid login credentials')) return ['Nieprawidłowe dane logowania', 'Sprawdź adres e-mail i hasło.'];
   if (message.includes('already registered') || message.includes('already been registered')) return ['Konto już istnieje', 'Zaloguj się używając tego adresu e-mail.'];
   if (message.includes('email not confirmed')) return ['Potwierdź adres e-mail', 'Otwórz wiadomość wysłaną przez Supabase i kliknij link aktywacyjny.'];
+  if (message.includes('email rate limit exceeded')) return ['Chwilowy limit wiadomości Supabase', 'Wysyłka linków aktywacyjnych została czasowo wstrzymana. Twoje dane są poprawne — spróbuj ponownie później.'];
   if (message.includes('password')) return ['Hasło nie spełnia wymagań', error.message];
   return ['Nie udało się wykonać operacji', error?.message || 'Spróbuj ponownie za chwilę.'];
 }
