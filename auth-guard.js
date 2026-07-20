@@ -9,6 +9,7 @@
       return;
     }
     window.syncLogisticMasterSession(session);
+    await window.loadRemoteWorkspace?.(session);
     document.documentElement.classList.remove('auth-checking');
     const startApplication = () => {
       const script = document.createElement('script');
