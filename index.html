@@ -8,7 +8,16 @@
   <script>
     try {
       const logisticMasterSession = sessionStorage.getItem('lm_session') || localStorage.getItem('lm_session');
-      if (!logisticMasterSession) window.location.replace('auth.html');
+      const logisticMasterUser = logisticMasterSession ? JSON.parse(logisticMasterSession) : null;
+      const isInvalidDemoIdentity = logisticMasterUser?.firstName === 'Marek' && logisticMasterUser?.lastName === 'Kowalski' && logisticMasterUser?.email !== 'marek@firma.pl';
+      if (!logisticMasterSession || isInvalidDemoIdentity) {
+        if (isInvalidDemoIdentity) {
+          sessionStorage.removeItem('lm_session');
+          localStorage.removeItem('lm_session');
+          localStorage.removeItem('lm_profile');
+        }
+        window.location.replace('auth.html');
+      }
     } catch {
       window.location.replace('auth.html');
     }
