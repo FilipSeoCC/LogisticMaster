@@ -43,6 +43,7 @@ button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
   .topbar h1 { max-width: 44vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 16px; }
   .topbar-actions { gap: 7px; }
   .topbar-actions > .primary-btn { width: 44px; min-width: 44px; padding: 0; font-size: 0; }
+  .topbar-actions > .primary-btn span { display: none; }
   .topbar-actions > .primary-btn::after { content: "+"; font: 700 23px Manrope; }
   .topbar-actions .notification { display: block; width: 44px; height: 44px; }
   .demo-data-banner { align-items: flex-start; gap: 9px; padding: 12px; }
