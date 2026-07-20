@@ -1,5 +1,7 @@
 const tabs = document.querySelectorAll('[data-auth-tab]');
 const client = window.lmSupabase;
+const activationParams = new URLSearchParams(location.hash.replace(/^#/, ''));
+if (activationParams.get('type') === 'signup' && activationParams.get('access_token')) sessionStorage.setItem('lm_account_activated_flash', 'true');
 
 function showAuth(view) {
   tabs.forEach(tab => tab.classList.toggle('active', tab.dataset.authTab === view));

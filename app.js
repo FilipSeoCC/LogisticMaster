@@ -155,3 +155,4 @@ document.querySelectorAll('.modal-backdrop,.onboarding-backdrop,.detail-drawer')
 window.addEventListener('resize',()=>{if(!window.matchMedia('(max-width: 760px)').matches)closeMobileNavigation();else syncMobileScrollLock()});
 const dateLabel=document.querySelector('.topbar-title .eyebrow');
 if(dateLabel)dateLabel.textContent=new Intl.DateTimeFormat('pl-PL',{weekday:'long',day:'numeric',month:'long'}).format(new Date()).toUpperCase();
+if(sessionStorage.getItem('lm_account_activated_flash')==='true'){sessionStorage.removeItem('lm_account_activated_flash');setTimeout(()=>showToast('Dziękujemy za aktywację konta','Konto zostało poprawnie aktywowane. Logistic Master jest gotowy do pracy.'),500)}
