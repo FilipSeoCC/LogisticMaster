@@ -4,7 +4,9 @@ function readWorkspace(){try{return JSON.parse(localStorage.getItem(workspaceKey
 function saveWorkspace(){const snapshot={transports,fleet,drivers,updatedAt:new Date().toISOString()};localStorage.setItem(workspaceKey,JSON.stringify(snapshot));if(typeof previewWorkspace!=='undefined'&&!previewWorkspace)window.queueRemoteWorkspaceSync?.(snapshot)}
 const savedWorkspace=readWorkspace();
 const demoWorkspace=currentWorkspaceEmail()==='marek@firma.pl';
-let previewWorkspace=!demoWorkspace&&!savedWorkspace;
+const startupOnboardingComplete=localStorage.getItem(`lm_user_${currentWorkspaceEmail().toLowerCase()}_onboarding_complete`)==='true';
+const savedWorkspaceHasData=Boolean(savedWorkspace&&(savedWorkspace.transports?.length||savedWorkspace.fleet?.length||savedWorkspace.drivers?.length));
+let previewWorkspace=!demoWorkspace&&!startupOnboardingComplete&&!savedWorkspaceHasData;
 const sampleTransports=[
  {id:'TR-2026-0718',client:'Nordic Freight AB',from:'Oslo, NO',to:'Göteborg, SE',driver:'Adam Nowak',truck:'ZS 8412K',progress:74,left:'128 km',eta:'Dzisiaj, 12:40',status:'W trasie',tone:'blue'},
  {id:'TR-2026-0719',client:'ScanLogistics AS',from:'Stockholm, SE',to:'Bergen, NO',driver:'Tomasz Lis',truck:'ZS 2209P',progress:46,left:'492 km',eta:'Dzisiaj, 18:20',status:'Ryzyko opóźnienia',tone:'red'},
@@ -29,9 +31,9 @@ const sampleDrivers=[
  {name:'Michał Kot',phone:'+48 501 220 105',email:'michal@firma.pl',license:'SZE/22109',until:'2029-06-12',status:'W trasie'},
  {name:'Jan Kurek',phone:'+48 501 220 106',email:'jan@firma.pl',license:'SZF/19877',until:'2028-03-22',status:'W trasie'}
 ];
-let transports=savedWorkspace?.transports||[...((demoWorkspace||previewWorkspace)?sampleTransports:[])];
-let fleet=savedWorkspace?.fleet||[...((demoWorkspace||previewWorkspace)?sampleFleet:[])];
-let drivers=savedWorkspace?.drivers||[...((demoWorkspace||previewWorkspace)?sampleDrivers:[])];
+let transports=previewWorkspace||demoWorkspace?[...sampleTransports]:(savedWorkspace?.transports||[]);
+let fleet=previewWorkspace||demoWorkspace?[...sampleFleet]:(savedWorkspace?.fleet||[]);
+let drivers=previewWorkspace||demoWorkspace?[...sampleDrivers]:(savedWorkspace?.drivers||[]);
 function activateRealWorkspace(){if(!previewWorkspace)return;transports=[];fleet=[];drivers=[];previewWorkspace=false;const banner=document.querySelector('#demoDataBanner');if(banner)banner.hidden=true;renderTable();renderCards();renderFleet();renderFleetManagement();renderFuelFleet();renderTimeline();renderReports();renderWorkspaceSummary()}
 const initials=n=>n.split(' ').map(x=>x[0]).join('');
 function renderTable(list=transports.slice(0,4)){
@@ -129,7 +131,7 @@ function renderTimeline(){const root=document.querySelector('#timelineRows');roo
 let scopedStep=Number(localStorage.getItem(userStateKey('onboarding_step'))||0);onboardingStep=scopedStep;
 const scopedOnboardingPending=localStorage.getItem(userStateKey('onboarding_pending'))==='true';
 const scopedOnboardingComplete=localStorage.getItem(userStateKey('onboarding_complete'))==='true';
-const hasConfiguredWorkspace=Boolean(transports.length||fleet.length||drivers.length);
+const hasConfiguredWorkspace=!previewWorkspace&&Boolean(transports.length||fleet.length||drivers.length);
 if(!scopedOnboardingComplete&&(scopedOnboardingPending||!hasConfiguredWorkspace))setTimeout(showOnboarding,300);
 document.querySelector('#openOnboarding').onclick=()=>{onboardingStep=Number(localStorage.getItem(userStateKey('onboarding_step'))||0);showOnboarding()};
 document.querySelector('#pauseOnboarding').onclick=()=>{localStorage.setItem(userStateKey('onboarding_step'),onboardingStep);closeOnboarding();showToast('Postęp został zapisany','Wznowisz konfigurację z menu konta.')};
