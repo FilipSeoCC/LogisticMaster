@@ -42,24 +42,24 @@
       <nav class="main-nav" aria-label="Główna nawigacja">
         <p class="nav-label">CENTRUM OPERACYJNE</p>
         <button class="nav-item active" data-view="dashboard"><span class="icon">⌂</span>Przegląd</button>
-        <button class="nav-item" data-view="transports"><span class="icon">⇄</span>Transporty <b class="nav-count">8</b></button>
+        <button class="nav-item" data-view="transports"><span class="icon">⇄</span>Transporty <b class="nav-count">0</b></button>
         <button class="nav-item" data-view="planner"><span class="icon">⌁</span>Planer tras <i class="live-dot"></i></button>
         <button class="nav-item" data-view="fleet"><span class="icon">▰</span>Flota i kierowcy</button>
         <p class="nav-label">KOMUNIKACJA</p>
-        <button class="nav-item" data-view="reports"><span class="icon">✉</span>Raporty <b class="nav-count warning">3</b></button>
-        <button class="nav-item" data-view="inbox"><span class="icon">▱</span>Skrzynka zleceń <b class="nav-count">5</b></button>
+        <button class="nav-item" data-view="reports"><span class="icon">✉</span>Raporty <b class="nav-count warning">0</b></button>
+        <button class="nav-item" data-view="inbox"><span class="icon">▱</span>Skrzynka zleceń <b class="nav-count">0</b></button>
         <p class="nav-label">ANALITYKA</p>
         <button class="nav-item" data-view="kilometers"><span class="icon">⌁</span>Kilometry</button>
-        <button class="nav-item" data-view="fuel"><span class="icon">◉</span>Paliwo i marża <b class="nav-count warning">2</b></button>
+        <button class="nav-item" data-view="fuel"><span class="icon">◉</span>Paliwo i marża <b class="nav-count warning">0</b></button>
         <button class="nav-item" data-view="settlements"><span class="icon">◫</span>Rozliczenia</button>
         <p class="nav-label">SYSTEM</p>
         <button class="nav-item" data-view="settings"><span class="icon">⚙</span>Ustawienia</button>
       </nav>
 
       <div class="integration-card">
-        <div class="integration-head"><span class="pulse"></span><strong>Dane z aplikacji GPS</strong><small>Połączono</small></div>
+        <div class="integration-head"><span></span><strong>Dane z aplikacji GPS</strong><small>Niepodłączono</small></div>
         <p>Ostatnia synchronizacja</p>
-        <b>dzisiaj, 08:42</b>
+        <b>Brak synchronizacji</b>
       </div>
       <div class="user-card" id="userCard">
         <div class="avatar" id="userAvatar">MK</div>
@@ -67,7 +67,7 @@
         <button aria-label="Menu konta" id="accountMenuBtn">•••</button>
       </div>
       <div class="account-popover" id="accountPopover"><button id="openOnboarding">Uruchom konfigurację</button><button id="openAccountSettings">Ustawienia konta</button><button id="logoutBtn">Wyloguj się</button></div>
-      <div class="legal-links"><a href="privacy.html">Prywatność</a><span>•</span><a href="rodo.html">RODO</a></div><a class="aiops-signature sidebar-signature" href="https://www.ai-ops.pl" target="_blank" rel="noopener"><img src="aiops-logo.png" alt=""><span>Projekt i automatyzacja<br><b>AI-Ops</b></span></a>
+      <div class="legal-links"><a href="privacy.html">Prywatność</a><span>•</span><a href="rodo.html">RODO</a><span>•</span><span class="app-version">Mark 1.v1</span></div><a class="aiops-signature sidebar-signature" href="https://www.ai-ops.pl" target="_blank" rel="noopener"><img src="aiops-logo.png" alt=""><span>Projekt i automatyzacja<br><b>AI-Ops</b></span></a>
     </aside>
 
     <main class="main-content">
@@ -76,7 +76,7 @@
         <div class="topbar-title"><span class="eyebrow">PONIEDZIAŁEK, 20 LIPCA</span><h1 id="pageTitle">Dzień dobry, Marek</h1></div>
         <div class="topbar-actions">
           <button class="icon-btn" aria-label="Wyszukaj">⌕</button>
-          <button class="icon-btn notification" aria-label="Powiadomienia">♢<span>3</span></button>
+          <button class="icon-btn notification" aria-label="Powiadomienia">♢<span hidden>0</span></button>
           <button class="primary-btn" id="newTransportBtn"><span>＋</span>Nowy transport</button>
         </div>
       </header>
